@@ -1,0 +1,29 @@
+services:
+  traefik:
+    image: traefik:v3
+    network_mode: "host"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.my-resolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.my-resolver.acme.email=drogaprogramisty@gmail.com"
+      - "--certificatesresolvers.my-resolver.acme.storage=/letsencrypt/acme.json"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hello-world-router.rule=Host(`droga.cloud`)"
+      - "traefik.http.routers.hello-world-router.entrypoints=websecure"
+      - "traefik.http.routers.hello-world-router.service=hello-world-service"
+      - "traefik.http.routers.hello-world-router.tls.certResolver=my-resolver"
+      - "traefik.http.services.hello-world-service.loadbalancer.server.url=http://localhost:3000"
+volumes:
+  letsencrypt:
